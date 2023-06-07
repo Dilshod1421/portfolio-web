@@ -14,6 +14,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { TitleProjectDto } from './dto/title-project.dto';
 
 @ApiTags('projects')
 @Controller('project')
@@ -43,17 +44,23 @@ export class ProjectController {
   }
 
   @ApiOperation({ summary: 'get project by id' })
-  @Get('/title/:title')
-  findByTitle(@Param('title') title: string) {
-    return this.projectService.findByTitle(title);
+  @Get('/title')
+  findByTitle(@Body() titleProjectDto: TitleProjectDto) {
+    return this.projectService.findByTitle(titleProjectDto);
   }
 
   @ApiOperation({ summary: 'update project by id' })
   @Patch(':id')
-  update(@Param('id') id: number, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectService.update(id, updateProjectDto);
+  @UseInterceptors(FileInterceptor('image'))
+  update(
+    @Param('id') id: number,
+    @Body() updateProjectDto: UpdateProjectDto,
+    @UploadedFile() image: any,
+  ) {
+    return this.projectService.update(id, updateProjectDto, image);
   }
 
+  @ApiOperation({ summary: 'delete project by id' })
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.projectService.remove(id);

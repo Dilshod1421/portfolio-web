@@ -25,8 +25,6 @@ export class CreateProjectDto {
     example: 'florago-logo.png',
     description: 'project image',
   })
-  @IsString()
-  @IsNotEmpty()
   image: string;
 
   @ApiProperty({
