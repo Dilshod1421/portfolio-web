@@ -17,6 +17,7 @@ import { CookieGetter } from 'src/decorators/cookieGetter.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { NewPasswordDto } from 'src/admin/dto/new-password.dto';
 import { NewPasswordUserDto } from './dto/new-password-user.dto';
+import { EmailUserDto } from './dto/email-user.dto';
 
 @ApiTags('users')
 @Controller('user')
@@ -51,13 +52,13 @@ export class UserController {
   }
 
   @ApiOperation({ summary: 'update user profile' })
-  @Patch('/:id')
+  @Patch('/info/:id')
   update(@Body() updateUserDto: UpdateUserDto, @Param('id') id: number) {
     return this.userService.update(updateUserDto, id);
   }
 
   @ApiOperation({ summary: 'update user password' })
-  @Patch('/:id')
+  @Patch('/password/:id')
   newPassword(
     @Body() newPasswordUserDto: NewPasswordUserDto,
     @Param('id') id: number,
@@ -78,9 +79,9 @@ export class UserController {
   }
 
   @ApiOperation({ summary: 'get user by email' })
-  @Get('/email/:email')
-  findByEmail(@Param('email') email: string) {
-    return this.userService.findByEmail(email);
+  @Get('/email')
+  findByEmail(@Body() emailDto: EmailUserDto) {
+    return this.userService.findByEmail(emailDto);
   }
 
   @ApiOperation({ summary: 'delete user by id' })

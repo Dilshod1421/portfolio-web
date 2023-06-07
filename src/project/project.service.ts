@@ -22,9 +22,7 @@ export class ProjectService {
   }
 
   async findAll() {
-    const projects = await this.projectRepository.findAll({
-      include: { all: true },
-    });
+    const projects = await this.projectRepository.findAll();
     return projects;
   }
 

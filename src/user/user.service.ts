@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
@@ -12,6 +14,7 @@ import { hash, compare } from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { NewPasswordUserDto } from './dto/new-password-user.dto';
+import { EmailUserDto } from './dto/email-user.dto';
 
 @Injectable()
 export class UserService {
@@ -136,22 +139,33 @@ export class UserService {
     );
     return {
       message: "User's new password has been updated successfully",
-      user,
+      user: user[1][0],
     };
   }
 
   async findAll() {
     const users = await this.userRepository.findAll({ include: { all: true } });
+    if (!users.length) {
+      throw new HttpException('Users not found!', HttpStatus.NOT_FOUND);
+    }
     return users;
   }
 
   async findById(id: number) {
     const user = await this.userRepository.findByPk(id);
+    if (!user) {
+      throw new HttpException('User not found!', HttpStatus.NOT_FOUND);
+    }
     return user;
   }
 
-  async findByEmail(email: string) {
-    const user = await this.userRepository.findOne({ where: { email } });
+  async findByEmail(emailDto: EmailUserDto) {
+    const user = await this.userRepository.findOne({
+      where: { email: emailDto.email },
+    });
+    if (!user) {
+      throw new HttpException('User not found!', HttpStatus.NOT_FOUND);
+    }
     return user;
   }
 
