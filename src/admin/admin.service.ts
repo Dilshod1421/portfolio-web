@@ -11,6 +11,7 @@ import { hash, compare } from 'bcrypt';
 import { LoginAdminDto } from './dto/login-admin.dto';
 import { Response } from 'express';
 import { UpdateAdminInfo } from './dto/update-admin-info.dto';
+import { NewPasswordDto } from './dto/new-password.dto';
 
 @Injectable()
 export class AdminService {
@@ -71,17 +72,38 @@ export class AdminService {
   }
 
   async updateInfo(updateInfo: UpdateAdminInfo, id: number) {
-    const check_admin = await this.adminRepository.findOne({ where: { id } });
-    const is_match_pass = await compare(
-      updateInfo.old_password,
-      check_admin.hashed_password,
-    );
-    if (!is_match_pass) {
-      throw new BadRequestException('Old password is wrong! Please try again.');
+    const admin = await this.adminRepository.update(updateInfo, {
+      where: { id },
+      returning: true,
+    });
+    return admin[1][0];
+  }
+
+  async newPassword(newPasswordDto: NewPasswordDto, id: number) {
+    const check = await this.adminRepository.findOne({ where: { id } });
+    let match_pass: any;
+    try {
+      match_pass = await compare(
+        newPasswordDto.old_password,
+        check.hashed_password,
+      );
+      if (!match_pass) {
+        throw new BadRequestException('Old password is incorrect!');
+      }
+    } catch (error) {
+      throw new BadRequestException('Please enter your old password!');
     }
-    const hashed_password = await hash(updateInfo.new_password, 7);
+    let hashed_password: any;
+    try {
+      hashed_password = await hash(newPasswordDto.new_password, 7);
+    } catch (error) {
+      throw new BadRequestException('Please enter your new password!');
+    }
+    if (newPasswordDto.old_password == newPasswordDto.new_password) {
+      throw new BadRequestException('New password is invalid!');
+    }
     const admin = await this.adminRepository.update(
-      { ...updateInfo, hashed_password },
+      { hashed_password },
       { where: { id }, returning: true },
     );
     return admin[1][0];
