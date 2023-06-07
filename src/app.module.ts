@@ -10,6 +10,8 @@ import { Admin } from './admin/models/admin.model';
 import { ProjectModule } from './project/project.module';
 import { Project } from './project/models/project.model';
 import { FileModule } from './file/file.module';
+import { ExperienceModule } from './experience/experience.module';
+import { Experience } from './experience/models/experience.model';
 
 @Module({
   imports: [
@@ -24,13 +26,14 @@ import { FileModule } from './file/file.module';
       username: process.env.PSQL_USER,
       password: process.env.PSQL_PASS,
       database: process.env.PSQL_DB,
-      models: [Admin, User, Project],
+      models: [Admin, User, Project, Experience],
       autoLoadModels: true,
     }),
     UserModule,
     AdminModule,
     ProjectModule,
     FileModule,
+    ExperienceModule,
   ],
 })
 export class AppModule {}
