@@ -11,6 +11,7 @@ import { Response } from 'express';
 import { hash, compare } from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { NewPasswordUserDto } from './dto/new-password-user.dto';
 
 @Injectable()
 export class UserService {
@@ -26,14 +27,24 @@ export class UserService {
     if (exist_email) {
       throw new BadRequestException('Email already exists!');
     }
-    const hashed_password = await hash(registerDto.password, 7);
+    let hashed_password: string;
+    try {
+      hashed_password = await hash(registerDto.password, 7);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
     const new_user = await this.userRepository.create({
       ...registerDto,
       is_active: true,
       hashed_password,
     });
     const tokens = await this.generateToken(new_user);
-    const hashed_refresh_token = await hash(tokens.refresh_token, 7);
+    let hashed_refresh_token: string;
+    try {
+      hashed_refresh_token = await hash(tokens.refresh_token, 7);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
     const user = await this.userRepository.update(
       { hashed_refresh_token },
       { where: { id: new_user.id }, returning: true },
@@ -47,12 +58,23 @@ export class UserService {
     if (!check_email) {
       throw new BadRequestException('Email is not registreted!');
     }
-    const is_match_pass = await compare(password, check_email.hashed_password);
-    if (!is_match_pass) {
-      throw new BadRequestException('Wrong password!');
+    let is_match_pass: boolean;
+    try {
+      is_match_pass = await compare(password, check_email.hashed_password);
+      if (!is_match_pass) {
+        throw new BadRequestException('Wrong password!');
+      }
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
+    check_email.is_active = true;
     const tokens = await this.generateToken(check_email);
-    const hashed_refresh_token = await hash(tokens.refresh_token, 7);
+    let hashed_refresh_token: string;
+    try {
+      hashed_refresh_token = await hash(tokens.refresh_token, 7);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
     const user = await this.userRepository.update(
       { hashed_refresh_token },
       { where: { id: check_email.id }, returning: true },
@@ -73,25 +95,49 @@ export class UserService {
       { hashed_refresh_token: null },
       { where: { id: data.id }, returning: true },
     );
-    res.clearCookie('refresh_token_user');
+    res.clearCookie('refresh_token');
     return { message: 'User successfully signed out!', user: user[1][0] };
   }
 
   async update(updateUserDto: UpdateUserDto, id: number) {
+    const user = await this.userRepository.update(updateUserDto, {
+      where: { id },
+      returning: true,
+    });
+    return user[1][0];
+  }
+
+  async newPassword(newPasswordUserDto: NewPasswordUserDto, id: number) {
     const check = await this.userRepository.findOne({ where: { id } });
-    const is_match_pass = await compare(
-      updateUserDto.old_password,
-      check.hashed_password,
-    );
-    if (!is_match_pass) {
-      throw new BadRequestException('Old password is wrong! Please try again.');
+    let is_match_pass: boolean;
+    try {
+      is_match_pass = await compare(
+        newPasswordUserDto.old_password,
+        check.hashed_password,
+      );
+      if (!is_match_pass) {
+        throw new BadRequestException('Old password is wrong!');
+      }
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
-    const hashed_password = await hash(updateUserDto.new_password, 7);
+    let hashed_password: string;
+    try {
+      hashed_password = await hash(newPasswordUserDto.new_password, 7);
+    } catch (error) {
+      throw new BadRequestException('Please enter your new password!');
+    }
+    if (newPasswordUserDto.old_password == newPasswordUserDto.new_password) {
+      throw new BadRequestException('New password is invalid!');
+    }
     const user = await this.userRepository.update(
-      { ...updateUserDto, hashed_password },
+      { hashed_password },
       { where: { id }, returning: true },
     );
-    return user[1][0];
+    return {
+      message: "User's new password has been updated successfully",
+      user,
+    };
   }
 
   async findAll() {

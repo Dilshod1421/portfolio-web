@@ -21,18 +21,4 @@ export class UpdateUserDto {
     description: 'new user email address',
   })
   email?: string;
-
-  @ApiProperty({
-    type: 'string',
-    example: 'Eshmat123!',
-    description: "user's old password",
-  })
-  old_password?: string;
-
-  @ApiProperty({
-    type: 'string',
-    example: 'Eshmat123!',
-    description: 'new user password',
-  })
-  new_password?: string;
 }

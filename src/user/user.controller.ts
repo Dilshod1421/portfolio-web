@@ -16,6 +16,7 @@ import { LoginDto } from './dto/login.dto';
 import { CookieGetter } from 'src/decorators/cookieGetter.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { NewPasswordDto } from 'src/admin/dto/new-password.dto';
+import { NewPasswordUserDto } from './dto/new-password-user.dto';
 
 @ApiTags('users')
 @Controller('user')
@@ -53,6 +54,15 @@ export class UserController {
   @Patch('/:id')
   update(@Body() updateUserDto: UpdateUserDto, @Param('id') id: number) {
     return this.userService.update(updateUserDto, id);
+  }
+
+  @ApiOperation({ summary: 'update user password' })
+  @Patch('/:id')
+  newPassword(
+    @Body() newPasswordUserDto: NewPasswordUserDto,
+    @Param('id') id: number,
+  ) {
+    return this.userService.newPassword(newPasswordUserDto, id);
   }
 
   @ApiOperation({ summary: 'get all users' })

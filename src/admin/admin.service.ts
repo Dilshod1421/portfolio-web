@@ -25,7 +25,12 @@ export class AdminService {
     if (admins.length) {
       throw new BadRequestException('You are not an admin!');
     }
-    const hashed_password = await hash(createAdminDto.password, 7);
+    let hashed_password: string;
+    try {
+      hashed_password = await hash(createAdminDto.password, 7);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
     const admin = await this.adminRepository.create({
       ...createAdminDto,
       hashed_password,
@@ -41,17 +46,28 @@ export class AdminService {
     if (!check_email) {
       throw new BadRequestException('Not found email address!');
     }
-    const is_match_pass = await compare(password, check_email.hashed_password);
-    if (!is_match_pass) {
-      throw new BadRequestException('Wrong password!');
+    let is_match_pass: boolean;
+    try {
+      is_match_pass = await compare(password, check_email.hashed_password);
+      if (!is_match_pass) {
+        throw new BadRequestException('Wrong password!');
+      }
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
     const tokens = await this.generateTokenAdmin(check_email);
-    const hashed_refresh_token = await hash(tokens.refresh_token, 7);
-    const admin = await this.adminRepository.update(
-      { hashed_refresh_token, is_admin: true },
+    let hashed_refresh_token: string;
+    try {
+      hashed_refresh_token = await hash(tokens.refresh_token, 7);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+    await this.adminRepository.update(
+      { hashed_refresh_token },
       { where: { id: check_email.id }, returning: true },
     );
-    return await this.writeToCookieAdmin(tokens, admin[1][0], res);
+    await this.writeToCookieAdmin(tokens, res);
+    return { access_token: tokens.access_token };
   }
 
   async logout(refresh_token: string, res: Response) {
@@ -63,37 +79,37 @@ export class AdminService {
     } catch (error) {
       throw new ForbiddenException(error.message);
     }
-    const admin = await this.adminRepository.update(
+    await this.adminRepository.update(
       { hashed_refresh_token: null },
       { where: { id: data.id }, returning: true },
     );
-    res.clearCookie('refresh_token_admin');
-    return { message: 'Admin successfully logged out!', admin: admin[1][0] };
+    res.clearCookie('refresh_token');
+    return { message: 'Admin successfully logged out!' };
   }
 
   async updateInfo(updateInfo: UpdateAdminInfo, id: number) {
-    const admin = await this.adminRepository.update(updateInfo, {
+    await this.adminRepository.update(updateInfo, {
       where: { id },
       returning: true,
     });
-    return admin[1][0];
+    return { message: "Admin's info has been updated successfully" };
   }
 
   async newPassword(newPasswordDto: NewPasswordDto, id: number) {
     const check = await this.adminRepository.findOne({ where: { id } });
-    let match_pass: any;
+    let is_match_pass: boolean;
     try {
-      match_pass = await compare(
+      is_match_pass = await compare(
         newPasswordDto.old_password,
         check.hashed_password,
       );
-      if (!match_pass) {
-        throw new BadRequestException('Old password is incorrect!');
+      if (!is_match_pass) {
+        throw new BadRequestException('Old password is wrong!');
       }
     } catch (error) {
-      throw new BadRequestException('Please enter your old password!');
+      throw new BadRequestException(error.message);
     }
-    let hashed_password: any;
+    let hashed_password: string;
     try {
       hashed_password = await hash(newPasswordDto.new_password, 7);
     } catch (error) {
@@ -102,11 +118,11 @@ export class AdminService {
     if (newPasswordDto.old_password == newPasswordDto.new_password) {
       throw new BadRequestException('New password is invalid!');
     }
-    const admin = await this.adminRepository.update(
+    await this.adminRepository.update(
       { hashed_password },
       { where: { id }, returning: true },
     );
-    return admin[1][0];
+    return { message: "Admin's password has been updated successfully" };
   }
 
   private async generateTokenAdmin(admin: Admin) {
@@ -127,11 +143,10 @@ export class AdminService {
     return { access_token, refresh_token };
   }
 
-  async writeToCookieAdmin(tokens: any, admin: Admin, res: Response) {
-    res.cookie('refresh_token_admin', tokens.refresh_token, {
+  async writeToCookieAdmin(tokens: any, res: Response) {
+    res.cookie('refresh_token', tokens.refresh_token, {
       maxAge: 15 * 24 * 60 * 60 * 1000,
       httpOnly: true,
     });
-    return { tokens, admin };
   }
 }

@@ -31,7 +31,7 @@ export class AdminController {
   @ApiOperation({ summary: 'admin log out' })
   @Post('/logout')
   logout(
-    @CookieGetter('refresh_token_admin') refreshToken: string,
+    @CookieGetter('refresh_token') refreshToken: string,
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.adminService.logout(refreshToken, res);
