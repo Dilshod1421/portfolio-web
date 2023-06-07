@@ -1,26 +1,62 @@
 import { Injectable } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { InjectModel } from '@nestjs/sequelize';
+import { Project } from './models/project.model';
+import { FilesService } from 'src/file/file.service';
 
 @Injectable()
 export class ProjectService {
-  create(createProjectDto: CreateProjectDto) {
-    return 'This action adds a new project';
+  constructor(
+    @InjectModel(Project) private projectRepository: typeof Project,
+    private readonly fileService: FilesService,
+  ) {}
+
+  async create(createProjectDto: CreateProjectDto, image: any) {
+    const image_name = await this.fileService.createFile(image);
+    const new_project = await this.projectRepository.create({
+      ...createProjectDto,
+      image: image_name,
+    });
+    return new_project;
   }
 
-  findAll() {
-    return `This action returns all project`;
+  async findAll() {
+    const projects = await this.projectRepository.findAll({
+      include: { all: true },
+    });
+    return projects;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} project`;
+  async findById(id: number) {
+    const project = await this.projectRepository.findByPk(id);
+    return project;
   }
 
-  update(id: number, updateProjectDto: UpdateProjectDto) {
-    return `This action updates a #${id} project`;
+  async findByTitle(title: string) {
+    const project = await this.projectRepository.findOne({ where: { title } });
+    return project;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} project`;
+  async update(id: number, updateProjectDto: UpdateProjectDto, image?: any) {
+    if (image) {
+      const image_name = await this.fileService.createFile(image);
+      const project = await this.projectRepository.update(
+        { ...updateProjectDto, image: image_name },
+        { where: { id }, returning: true },
+      );
+      return project[1][0];
+    }
+    const project = await this.projectRepository.update(updateProjectDto, {
+      where: { id },
+      returning: true,
+    });
+    return project[1][0];
+  }
+
+  async remove(id: number) {
+    const project = await this.projectRepository.findOne({ where: { id } });
+    await this.projectRepository.destroy({ where: { id } });
+    return project;
   }
 }

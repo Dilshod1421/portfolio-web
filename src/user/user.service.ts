@@ -10,6 +10,7 @@ import { RegisterDto } from './dto/register.dto';
 import { Response } from 'express';
 import { hash, compare } from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -46,7 +47,7 @@ export class UserService {
     if (!check_email) {
       throw new BadRequestException('Email is not registreted!');
     }
-    const is_match_pass = compare(password, check_email.hashed_password);
+    const is_match_pass = await compare(password, check_email.hashed_password);
     if (!is_match_pass) {
       throw new BadRequestException('Wrong password!');
     }
@@ -74,6 +75,44 @@ export class UserService {
     );
     res.clearCookie('refresh_token_user');
     return { message: 'User successfully signed out!', user: user[1][0] };
+  }
+
+  async update(updateUserDto: UpdateUserDto, id: number) {
+    const check = await this.userRepository.findOne({ where: { id } });
+    const is_match_pass = await compare(
+      updateUserDto.old_password,
+      check.hashed_password,
+    );
+    if (!is_match_pass) {
+      throw new BadRequestException('Old password is wrong! Please try again.');
+    }
+    const hashed_password = await hash(updateUserDto.new_password, 7);
+    const user = await this.userRepository.update(
+      { ...updateUserDto, hashed_password },
+      { where: { id }, returning: true },
+    );
+    return user[1][0];
+  }
+
+  async findAll() {
+    const users = await this.userRepository.findAll({ include: { all: true } });
+    return users;
+  }
+
+  async findById(id: number) {
+    const user = await this.userRepository.findByPk(id);
+    return user;
+  }
+
+  async findByEmail(email: string) {
+    const user = await this.userRepository.findOne({ where: { email } });
+    return user;
+  }
+
+  async remove(id: number) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    await this.userRepository.destroy({ where: { id } });
+    return user;
   }
 
   private async generateToken(user: User) {

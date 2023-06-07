@@ -20,6 +20,10 @@ export class AdminService {
   ) {}
 
   async createAdmin(createAdminDto: CreateAdminDto) {
+    const admins = await this.adminRepository.findAll();
+    if (admins.length) {
+      throw new BadRequestException('You are not an admin!');
+    }
     const hashed_password = await hash(createAdminDto.password, 7);
     const admin = await this.adminRepository.create({
       ...createAdminDto,
@@ -67,10 +71,19 @@ export class AdminService {
   }
 
   async updateInfo(updateInfo: UpdateAdminInfo, id: number) {
-    const admin = await this.adminRepository.update(updateInfo, {
-      where: { id },
-      returning: true,
-    });
+    const check_admin = await this.adminRepository.findOne({ where: { id } });
+    const is_match_pass = await compare(
+      updateInfo.old_password,
+      check_admin.hashed_password,
+    );
+    if (!is_match_pass) {
+      throw new BadRequestException('Old password is wrong! Please try again.');
+    }
+    const hashed_password = await hash(updateInfo.new_password, 7);
+    const admin = await this.adminRepository.update(
+      { ...updateInfo, hashed_password },
+      { where: { id }, returning: true },
+    );
     return admin[1][0];
   }
 

@@ -1,10 +1,20 @@
-import { Controller, Post, Res, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Res,
+  Body,
+  Patch,
+  Param,
+  Get,
+  Delete,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RegisterDto } from './dto/register.dto';
 import { Response } from 'express';
 import { LoginDto } from './dto/login.dto';
 import { CookieGetter } from 'src/decorators/cookieGetter.decorator';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('users')
 @Controller('user')
@@ -36,5 +46,35 @@ export class UserController {
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.userService.signout(refreshToken, res);
+  }
+
+  @ApiOperation({ summary: 'update user profile' })
+  @Patch('/:id')
+  update(@Body() updateUserDto: UpdateUserDto, @Param('id') id: number) {
+    return this.userService.update(updateUserDto, id);
+  }
+
+  @ApiOperation({ summary: 'get all users' })
+  @Get('/all')
+  findAll() {
+    return this.userService.findAll();
+  }
+
+  @ApiOperation({ summary: 'get user by id' })
+  @Get('/id/:id')
+  findById(@Param('id') id: number) {
+    return this.userService.findById(id);
+  }
+
+  @ApiOperation({ summary: 'get user by email' })
+  @Get('/email/:email')
+  findByEmail(@Param('email') email: string) {
+    return this.userService.findByEmail(email);
+  }
+
+  @ApiOperation({ summary: 'delete user by id' })
+  @Delete('/:id')
+  remove(@Param('id') id: number) {
+    return this.userService.remove(id);
   }
 }

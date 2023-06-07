@@ -8,6 +8,8 @@ import { User } from './user/models/user.model';
 import { AdminModule } from './admin/admin.module';
 import { Admin } from './admin/models/admin.model';
 import { ProjectModule } from './project/project.module';
+import { Project } from './project/models/project.model';
+import { FileModule } from './file/file.module';
 
 @Module({
   imports: [
@@ -22,12 +24,13 @@ import { ProjectModule } from './project/project.module';
       username: process.env.PSQL_USER,
       password: process.env.PSQL_PASS,
       database: process.env.PSQL_DB,
-      models: [Admin, User],
+      models: [Admin, User, Project],
       autoLoadModels: true,
     }),
     UserModule,
     AdminModule,
     ProjectModule,
+    FileModule,
   ],
 })
 export class AppModule {}
