@@ -46,6 +46,7 @@ export class AdminService {
     if (!check_email) {
       throw new BadRequestException('Not found email address!');
     }
+    console.log('salom');
     let is_match_pass: boolean;
     try {
       is_match_pass = await compare(password, check_email.hashed_password);
