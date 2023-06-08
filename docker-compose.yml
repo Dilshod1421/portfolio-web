@@ -6,13 +6,13 @@ services:
     image: postgres:14.0-alpine
     restart: always
     environment:
-      PSQL_USER: ${PSQL_USER}
-      PSQL_PASS: ${PSQL_PASS}
-      PSQL_DB: ${PSQL_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASS: ${POSTGRES_PASS}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     ports:
-      - "${PSQL_LOCAL_PORT}:${PSQL_PORT}"
+      - "${POSTGRES_LOCAL_PORT}:${POSTGRES_PORT}"
       
   app:
     container_name: portfolio
@@ -26,12 +26,12 @@ services:
     environment:
       PORT: ${PORT}
       LOCAL_PORT: ${LOCAL_PORT}
-      PSQL_HOST: postgres
-      PSQL_PORT: ${PSQL_PORT}
-      PSQL_LOCAL_PORT: ${PSQL_LOCAL_PORT}
-      PSQL_USER: ${PSQL_USER}
-      PSQL_PASS: ${PSQL_PASS}
-      PSQL_DB: ${PSQL_DB}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_LOCAL_PORT: ${POSTGRES_LOCAL_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASS: ${POSTGRES_PASS}
+      POSTGRES_DB: ${POSTGRES_DB}
       ACCESS_TOKEN_KEY: ${ACCESS_TOKEN_KEY}
       ACCESS_TOKEN_TIME: ${ACCESS_TOKEN_TIME}
       REFRESH_TOKEN_KEY: ${REFRESH_TOKEN_KEY}

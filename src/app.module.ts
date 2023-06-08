@@ -29,11 +29,11 @@ import { Comment } from './comment/models/comment.model';
     }),
     SequelizeModule.forRoot({
       dialect: 'postgres',
-      host: process.env.PSQL_HOST,
-      port: Number(process.env.PSQL_PORT),
-      username: process.env.PSQL_USER,
-      password: process.env.PSQL_PASS,
-      database: process.env.PSQL_DB,
+      host: process.env.POSTGRES_HOST,
+      port: Number(process.env.POSTGRES_PORT),
+      username: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASS,
+      database: process.env.POSTGRES_DB,
       models: [
         Admin,
         User,
