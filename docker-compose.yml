@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres:
+    container_name: portfolio_db
+    image: postgres:14.0-alpine
+    restart: always
+    environment:
+      PSQL_USER: ${PSQL_USER}
+      PSQL_PASS: ${PSQL_PASS}
+      PSQL_DB: ${PSQL_DB}
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - "${PSQL_LOCAL_PORT}:${PSQL_PORT}"
+      
+  app:
+    container_name: portfolio
+    build:
+      context: ./
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    ports:
+      - "${LOCAL_PORT}:${PORT}"
+    environment:
+      PORT: ${PORT}
+      LOCAL_PORT: ${LOCAL_PORT}
+      PSQL_HOST: postgres
+      PSQL_PORT: ${PSQL_PORT}
+      PSQL_LOCAL_PORT: ${PSQL_LOCAL_PORT}
+      PSQL_USER: ${PSQL_USER}
+      PSQL_PASS: ${PSQL_PASS}
+      PSQL_DB: ${PSQL_DB}
+      ACCESS_TOKEN_KEY: ${ACCESS_TOKEN_KEY}
+      ACCESS_TOKEN_TIME: ${ACCESS_TOKEN_TIME}
+      REFRESH_TOKEN_KEY: ${REFRESH_TOKEN_KEY}
+      REFRESH_TOKEN_TIME: ${REFRESH_TOKEN_TIME}
