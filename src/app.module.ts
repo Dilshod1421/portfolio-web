@@ -18,6 +18,8 @@ import { SocialNetworkModule } from './social-network/social-network.module';
 import { SocialNetwork } from './social-network/models/social-network.model';
 import { PostModule } from './post/post.module';
 import { Post } from './post/models/post.model';
+import { CommentModule } from './comment/comment.module';
+import { Comment } from './comment/models/comment.model';
 
 @Module({
   imports: [
@@ -32,7 +34,16 @@ import { Post } from './post/models/post.model';
       username: process.env.PSQL_USER,
       password: process.env.PSQL_PASS,
       database: process.env.PSQL_DB,
-      models: [Admin, User, Project, Experience, Skill, SocialNetwork, Post],
+      models: [
+        Admin,
+        User,
+        Project,
+        Experience,
+        Skill,
+        SocialNetwork,
+        Post,
+        Comment,
+      ],
       autoLoadModels: true,
     }),
     UserModule,
@@ -43,6 +54,7 @@ import { Post } from './post/models/post.model';
     SkillModule,
     SocialNetworkModule,
     PostModule,
+    CommentModule,
   ],
 })
 export class AppModule {}
