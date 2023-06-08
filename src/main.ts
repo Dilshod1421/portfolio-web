@@ -23,7 +23,7 @@ async function portfolio() {
     SwaggerModule.setup('api', app, document);
     await app.listen(PORT, () => console.log('Server running on port', +PORT));
   } catch (error) {
-    console.log(error.stack);
+    console.log(error);
   }
 }
 portfolio();
