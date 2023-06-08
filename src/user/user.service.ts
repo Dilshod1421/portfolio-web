@@ -194,7 +194,7 @@ export class UserService {
   }
 
   async writeToCookie(tokens: any, user: User, res: Response) {
-    res.cookie('refresh_token_user', tokens.refresh_token, {
+    res.cookie('refresh_token', tokens.refresh_token, {
       maxAge: 15 * 24 * 60 * 60 * 1000,
       httpOnly: true,
     });

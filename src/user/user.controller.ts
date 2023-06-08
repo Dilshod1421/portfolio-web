@@ -15,7 +15,6 @@ import { Response } from 'express';
 import { LoginDto } from './dto/login.dto';
 import { CookieGetter } from 'src/decorators/cookieGetter.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { NewPasswordDto } from 'src/admin/dto/new-password.dto';
 import { NewPasswordUserDto } from './dto/new-password-user.dto';
 import { EmailUserDto } from './dto/email-user.dto';
 

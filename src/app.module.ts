@@ -12,6 +12,10 @@ import { Project } from './project/models/project.model';
 import { FileModule } from './file/file.module';
 import { ExperienceModule } from './experience/experience.module';
 import { Experience } from './experience/models/experience.model';
+import { SkillModule } from './skill/skill.module';
+import { Skill } from './skill/models/skill.model';
+import { SocialNetworkModule } from './social-network/social-network.module';
+import { SocialNetwork } from './social-network/models/social-network.model';
 
 @Module({
   imports: [
@@ -26,7 +30,7 @@ import { Experience } from './experience/models/experience.model';
       username: process.env.PSQL_USER,
       password: process.env.PSQL_PASS,
       database: process.env.PSQL_DB,
-      models: [Admin, User, Project, Experience],
+      models: [Admin, User, Project, Experience, Skill, SocialNetwork],
       autoLoadModels: true,
     }),
     UserModule,
@@ -34,6 +38,8 @@ import { Experience } from './experience/models/experience.model';
     ProjectModule,
     FileModule,
     ExperienceModule,
+    SkillModule,
+    SocialNetworkModule,
   ],
 })
 export class AppModule {}
