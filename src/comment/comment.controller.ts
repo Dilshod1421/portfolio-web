@@ -6,11 +6,13 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtGuard } from 'src/guards/jwt.guard';
 
 @ApiTags('comments')
 @Controller('comment')
@@ -19,6 +21,7 @@ export class CommentController {
 
   @ApiOperation({ summary: 'create a new comment' })
   @Post()
+  @UseGuards(JwtGuard)
   create(@Body() createCommentDto: CreateCommentDto) {
     return this.commentService.create(createCommentDto);
   }
@@ -36,6 +39,7 @@ export class CommentController {
   }
 
   @ApiOperation({ summary: 'update comment by id' })
+  @UseGuards(JwtGuard)
   @Patch(':id')
   update(@Param('id') id: number, @Body() updateCommentDto: UpdateCommentDto) {
     return this.commentService.update(id, updateCommentDto);
@@ -43,6 +47,7 @@ export class CommentController {
 
   @ApiOperation({ summary: 'delete comment by id' })
   @Delete(':id')
+  @UseGuards(JwtGuard)
   remove(@Param('id') id: number) {
     return this.commentService.remove(id);
   }

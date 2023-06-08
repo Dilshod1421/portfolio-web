@@ -6,11 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { SocialNetworkService } from './social-network.service';
 import { CreateSocialNetworkDto } from './dto/create-social-network.dto';
 import { UpdateSocialNetworkDto } from './dto/update-social-network.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { IsAdminGuard } from 'src/guards/isAdmin.guard';
+import { JwtGuard } from 'src/guards/jwt.guard';
 
 @ApiTags('social-networks')
 @Controller('social-network')
@@ -19,6 +22,8 @@ export class SocialNetworkController {
 
   @ApiOperation({ summary: 'Create a new social network' })
   @Post()
+  @UseGuards(IsAdminGuard)
+  @UseGuards(JwtGuard)
   create(@Body() createSocialNetworkDto: CreateSocialNetworkDto) {
     return this.socialNetworkService.create(createSocialNetworkDto);
   }
@@ -37,6 +42,8 @@ export class SocialNetworkController {
 
   @ApiOperation({ summary: 'update social network by id' })
   @Patch(':id')
+  @UseGuards(IsAdminGuard)
+  @UseGuards(JwtGuard)
   update(
     @Param('id') id: number,
     @Body() updateSocialNetworkDto: UpdateSocialNetworkDto,
@@ -46,6 +53,8 @@ export class SocialNetworkController {
 
   @ApiOperation({ summary: 'delete social network by id' })
   @Delete(':id')
+  @UseGuards(IsAdminGuard)
+  @UseGuards(JwtGuard)
   remove(@Param('id') id: number) {
     return this.socialNetworkService.remove(id);
   }

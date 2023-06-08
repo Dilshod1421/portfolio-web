@@ -1,4 +1,12 @@
-import { Controller, Res, Post, Body, Patch, Param } from '@nestjs/common';
+import {
+  Controller,
+  Res,
+  Post,
+  Body,
+  Patch,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateAdminDto } from './dto/create-admin.dto';
@@ -7,6 +15,8 @@ import { CookieGetter } from 'src/decorators/cookieGetter.decorator';
 import { Response } from 'express';
 import { UpdateAdminInfo } from './dto/update-admin-info.dto';
 import { NewPasswordDto } from './dto/new-password.dto';
+import { IsAdminGuard } from 'src/guards/isAdmin.guard';
+import { JwtGuard } from 'src/guards/jwt.guard';
 
 @ApiTags('admins')
 @Controller('admin')
@@ -39,6 +49,8 @@ export class AdminController {
 
   @ApiOperation({ summary: 'update admin info' })
   @Patch('/update/:id')
+  @UseGuards(IsAdminGuard)
+  @UseGuards(JwtGuard)
   updateInfo(
     @Body() updateAdminInfo: UpdateAdminInfo,
     @Param('id') id: number,
@@ -48,6 +60,8 @@ export class AdminController {
 
   @ApiOperation({ summary: 'admin new password' })
   @Patch('/new-password/:id')
+  @UseGuards(IsAdminGuard)
+  @UseGuards(JwtGuard)
   newPassword(@Body() newPasswordDto: NewPasswordDto, @Param('id') id: number) {
     return this.adminService.newPassword(newPasswordDto, id);
   }
