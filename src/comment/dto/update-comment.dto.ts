@@ -13,7 +13,7 @@ export class UpdateCommentDto {
     example: '2',
     description: 'new user id',
   })
-  user_id?: number;
+  user_id?: string;
 
   @ApiProperty({
     type: 'number',

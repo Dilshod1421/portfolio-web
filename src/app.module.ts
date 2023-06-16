@@ -4,22 +4,14 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { resolve } from 'path';
 import { UserModule } from './user/user.module';
-import { User } from './user/models/user.model';
 import { AdminModule } from './admin/admin.module';
-import { Admin } from './admin/models/admin.model';
 import { ProjectModule } from './project/project.module';
-import { Project } from './project/models/project.model';
 import { FileModule } from './file/file.module';
 import { ExperienceModule } from './experience/experience.module';
-import { Experience } from './experience/models/experience.model';
 import { SkillModule } from './skill/skill.module';
-import { Skill } from './skill/models/skill.model';
 import { SocialNetworkModule } from './social-network/social-network.module';
-import { SocialNetwork } from './social-network/models/social-network.model';
 import { PostModule } from './post/post.module';
-import { Post } from './post/models/post.model';
 import { CommentModule } from './comment/comment.module';
-import { Comment } from './comment/models/comment.model';
 
 @Module({
   imports: [
@@ -37,15 +29,15 @@ import { Comment } from './comment/models/comment.model';
       models: [],
       autoLoadModels: true,
     }),
-    UserModule,
     AdminModule,
-    ProjectModule,
-    FileModule,
+    CommentModule,
     ExperienceModule,
+    FileModule,
+    PostModule,
+    ProjectModule,
     SkillModule,
     SocialNetworkModule,
-    PostModule,
-    CommentModule,
+    UserModule,
   ],
 })
 export class AppModule {}

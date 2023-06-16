@@ -17,8 +17,8 @@ export class CreateCommentDto {
     description: 'user id',
   })
   @IsNotEmpty()
-  @IsNumber()
-  user_id: number;
+  @IsString()
+  user_id: string;
 
   @ApiProperty({
     type: 'number',
