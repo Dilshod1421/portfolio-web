@@ -25,6 +25,7 @@ export class RegisterDto {
     example: 'johndoe@gmail.com',
     description: 'User email',
   })
+  @IsNotEmpty()
   @IsEmail()
   email: string;
 
@@ -33,7 +34,7 @@ export class RegisterDto {
     example: 'JohnDoe123!',
     description: 'User password',
   })
-  @IsString()
   @IsNotEmpty()
+  @IsString()
   password: string;
 }

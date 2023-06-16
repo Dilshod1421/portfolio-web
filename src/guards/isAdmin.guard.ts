@@ -12,9 +12,10 @@ export class IsAdminGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const req = context.switchToHttp().getRequest();
+    console.log(req.user)
     if (req.user.is_admin != true) {
       throw new UnauthorizedException({
-        message: 'Admin not match!',
+        message: 'Admin is not match!',
       });
     }
     return true;

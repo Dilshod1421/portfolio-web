@@ -22,13 +22,6 @@ export class CreateProjectDto {
 
   @ApiProperty({
     type: 'string',
-    example: 'florago-logo.png',
-    description: 'project image',
-  })
-  image: string;
-
-  @ApiProperty({
-    type: 'string',
     example: 'FloraGo - is online market',
     description: 'project description',
   })

@@ -17,13 +17,6 @@ export class UpdateProjectDto {
 
   @ApiProperty({
     type: 'string',
-    example: 'ModMecrm.png',
-    description: 'new project image',
-  })
-  image?: string;
-
-  @ApiProperty({
-    type: 'string',
     example: 'ModMe - is a crm project',
     description: 'new project description',
   })

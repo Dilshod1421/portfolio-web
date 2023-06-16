@@ -1,11 +1,10 @@
 import {
   BadRequestException,
   ForbiddenException,
-  HttpException,
-  HttpStatus,
   Injectable,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { v4 } from 'uuid';
 import { User } from './models/user.model';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
@@ -14,7 +13,6 @@ import { hash, compare } from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { NewPasswordUserDto } from './dto/new-password-user.dto';
-import { EmailUserDto } from './dto/email-user.dto';
 
 @Injectable()
 export class UserService {
@@ -23,162 +21,180 @@ export class UserService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async signup(registerDto: RegisterDto, res: Response) {
-    const exist_email = await this.userRepository.findOne({
-      where: { email: registerDto.email },
-    });
-    if (exist_email) {
-      throw new BadRequestException('Email already exists!');
-    }
-    let hashed_password: string;
+  async signup(registerDto: RegisterDto, res: Response): Promise<object> {
     try {
-      hashed_password = await hash(registerDto.password, 7);
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
-    const new_user = await this.userRepository.create({
-      ...registerDto,
-      is_active: true,
-      hashed_password,
-    });
-    const tokens = await this.generateToken(new_user);
-    let hashed_refresh_token: string;
-    try {
-      hashed_refresh_token = await hash(tokens.refresh_token, 7);
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
-    const user = await this.userRepository.update(
-      { hashed_refresh_token },
-      { where: { id: new_user.id }, returning: true },
-    );
-    return await this.writeToCookie(tokens, user[1][0], res);
-  }
-
-  async signin(loginDto: LoginDto, res: Response) {
-    const { email, password } = loginDto;
-    const check_email = await this.userRepository.findOne({ where: { email } });
-    if (!check_email) {
-      throw new BadRequestException('Email is not registreted!');
-    }
-    let is_match_pass: boolean;
-    try {
-      is_match_pass = await compare(password, check_email.hashed_password);
-      if (!is_match_pass) {
-        throw new BadRequestException('Wrong password!');
-      }
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
-    check_email.is_active = true;
-    const tokens = await this.generateToken(check_email);
-    let hashed_refresh_token: string;
-    try {
-      hashed_refresh_token = await hash(tokens.refresh_token, 7);
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
-    const user = await this.userRepository.update(
-      { hashed_refresh_token },
-      { where: { id: check_email.id }, returning: true },
-    );
-    return await this.writeToCookie(tokens, user[1][0], res);
-  }
-
-  async signout(refresh_token: string, res: Response) {
-    let data: any;
-    try {
-      data = await this.jwtService.verify(refresh_token, {
-        secret: process.env.REFRESH_TOKEN_KEY,
+      const exist_email = await this.userRepository.findOne({
+        where: { email: registerDto.email },
       });
+      if (exist_email) {
+        throw new BadRequestException('Email already exists!');
+      }
+      let hashed_password: string;
+      try {
+        hashed_password = await hash(registerDto.password, 7);
+      } catch (error) {
+        throw new BadRequestException(error.message);
+      }
+      const id = v4();
+      const new_user = await this.userRepository.create({
+        id,
+        ...registerDto,
+        hashed_password,
+      });
+      const tokens = await this.generateToken(new_user);
+      await this.writeToCookie(tokens, res);
+      return { access_token: tokens.access_token };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async signin(loginDto: LoginDto, res: Response): Promise<object> {
+    try {
+      const { email, password } = loginDto;
+      const user = await this.userRepository.findOne({
+        where: { email },
+      });
+      if (!user) {
+        throw new BadRequestException('Email is not registreted!');
+      }
+      let is_match_pass: boolean;
+      try {
+        is_match_pass = await compare(password, user.hashed_password);
+        if (!is_match_pass) {
+          throw new BadRequestException('Wrong password!');
+        }
+      } catch (error) {
+        throw new BadRequestException(error.message);
+      }
+      const tokens = await this.generateToken(user);
+      await this.writeToCookie(tokens.access_token, res);
+      return { access_token: tokens.access_token };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async signout(refresh_token: string, res: Response): Promise<object> {
+    try {
+      let data: any;
+      try {
+        data = await this.jwtService.verify(refresh_token, {
+          secret: process.env.REFRESH_TOKEN_KEY,
+        });
+      } catch (error) {
+        throw new ForbiddenException(error.message);
+      }
+      res.clearCookie('refresh_token');
+      return { message: 'User successfully signed out!' };
     } catch (error) {
       throw new ForbiddenException(error.message);
     }
-    const user = await this.userRepository.update(
-      { hashed_refresh_token: null },
-      { where: { id: data.id }, returning: true },
-    );
-    res.clearCookie('refresh_token');
-    return { message: 'User successfully signed out!', user: user[1][0] };
   }
 
-  async update(updateUserDto: UpdateUserDto, id: number) {
-    const user = await this.userRepository.update(updateUserDto, {
-      where: { id },
-      returning: true,
-    });
-    return user[1][0];
-  }
-
-  async newPassword(newPasswordUserDto: NewPasswordUserDto, id: number) {
-    const check = await this.userRepository.findOne({ where: { id } });
-    let is_match_pass: boolean;
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<object> {
     try {
-      is_match_pass = await compare(
-        newPasswordUserDto.old_password,
-        check.hashed_password,
-      );
-      if (!is_match_pass) {
-        throw new BadRequestException('Old password is wrong!');
+      const user = await this.userRepository.update(updateUserDto, {
+        where: { id },
+        returning: true,
+      });
+      if (!user[1].length) {
+        throw new ForbiddenException('User not found!');
       }
+      return { message: 'User successfully updated' };
     } catch (error) {
       throw new BadRequestException(error.message);
     }
-    let hashed_password: string;
+  }
+
+  async newPassword(
+    id: string,
+    newPasswordUserDto: NewPasswordUserDto,
+  ): Promise<object> {
     try {
-      hashed_password = await hash(newPasswordUserDto.new_password, 7);
+      const user = await this.userRepository.findOne({ where: { id } });
+      if (!user) {
+        throw new ForbiddenException('User not found!');
+      }
+      let is_match_pass: boolean;
+      try {
+        is_match_pass = await compare(
+          newPasswordUserDto.old_password,
+          user.hashed_password,
+        );
+        if (!is_match_pass) {
+          throw new BadRequestException('Old password is wrong!');
+        }
+      } catch (error) {
+        throw new BadRequestException(error.message);
+      }
+      let hashed_password: string;
+      try {
+        hashed_password = await hash(newPasswordUserDto.new_password, 7);
+      } catch (error) {
+        throw new BadRequestException('Please enter your new password!');
+      }
+      if (newPasswordUserDto.old_password == newPasswordUserDto.new_password) {
+        throw new BadRequestException('New password is invalid!');
+      }
+      await this.userRepository.update(
+        { hashed_password },
+        { where: { id }, returning: true },
+      );
+      return {
+        message: "User's new password has been updated successfully",
+      };
     } catch (error) {
-      throw new BadRequestException('Please enter your new password!');
+      throw new BadRequestException(error.message);
     }
-    if (newPasswordUserDto.old_password == newPasswordUserDto.new_password) {
-      throw new BadRequestException('New password is invalid!');
-    }
-    const user = await this.userRepository.update(
-      { hashed_password },
-      { where: { id }, returning: true },
-    );
-    return {
-      message: "User's new password has been updated successfully",
-      user: user[1][0],
-    };
   }
 
-  async findAll() {
-    const users = await this.userRepository.findAll({ include: { all: true } });
-    if (!users.length) {
-      throw new HttpException('Users not found!', HttpStatus.NOT_FOUND);
+  async findAll(): Promise<User[]> {
+    try {
+      const users = await this.userRepository.findAll({
+        include: { all: true },
+      });
+      if (!users.length) {
+        throw new BadRequestException('Users list is empty!');
+      }
+      return users;
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
-    return users;
   }
 
-  async findById(id: number) {
-    const user = await this.userRepository.findByPk(id);
-    if (!user) {
-      throw new HttpException('User not found!', HttpStatus.NOT_FOUND);
+  async findById(id: string): Promise<User> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id },
+        include: { all: true },
+      });
+      if (!user) {
+        throw new BadRequestException('User not found!');
+      }
+      return user;
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
-    return user;
   }
 
-  async findByEmail(emailDto: EmailUserDto) {
-    const user = await this.userRepository.findOne({
-      where: { email: emailDto.email },
-    });
-    if (!user) {
-      throw new HttpException('User not found!', HttpStatus.NOT_FOUND);
+  async remove(id: string): Promise<object> {
+    try {
+      const user = await this.userRepository.findOne({ where: { id } });
+      if (!user) {
+        throw new BadRequestException('User not found!');
+      }
+      await this.userRepository.destroy({ where: { id } });
+      return { message: 'User deleted successfully' };
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
-    return user;
-  }
-
-  async remove(id: number) {
-    const user = await this.userRepository.findOne({ where: { id } });
-    await this.userRepository.destroy({ where: { id } });
-    return user;
   }
 
   private async generateToken(user: User) {
     const jwtPayload = {
       id: user.id,
-      is_active: user.is_active,
+      name: user.first_name,
     };
     const [access_token, refresh_token] = await Promise.all([
       this.jwtService.signAsync(jwtPayload, {
@@ -193,11 +209,10 @@ export class UserService {
     return { access_token, refresh_token };
   }
 
-  async writeToCookie(tokens: any, user: User, res: Response) {
+  async writeToCookie(tokens: any, res: Response) {
     res.cookie('refresh_token', tokens.refresh_token, {
       maxAge: 15 * 24 * 60 * 60 * 1000,
       httpOnly: true,
     });
-    return { tokens, user };
   }
 }

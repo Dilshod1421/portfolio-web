@@ -12,51 +12,72 @@ export class CommentService {
     @InjectModel(User) private userRepository: typeof User,
   ) {}
 
-  async create(createCommentDto: CreateCommentDto) {
-    const comment = await this.commentRepository.create(createCommentDto);
-    return comment;
-  }
-
-  async findAll() {
-    const comments = await this.commentRepository.findAll();
-    return comments;
-  }
-
-  async findOne(id: number) {
-    const comment = await this.commentRepository.findOne({ where: { id } });
-    return comment;
-  }
-
-  async update(id: number, updateCommentDto: UpdateCommentDto) {
-    const check_user_id = await this.commentRepository.findOne({
-      where: { id },
-    });
+  async create(createCommentDto: CreateCommentDto): Promise<Comment> {
     try {
-      await this.userRepository.findOne({
-        where: { id: check_user_id.user_id },
-      });
+      const comment = await this.commentRepository.create(createCommentDto);
+      return comment;
     } catch (error) {
-      throw new BadRequestException('User is not match!', error.message);
+      throw new BadRequestException(error.message);
     }
-    const comment = await this.commentRepository.update(updateCommentDto, {
-      where: { id },
-      returning: true,
-    });
-    return comment[1][0];
   }
 
-  async remove(id: number) {
-    const check_user_id = await this.commentRepository.findOne({
-      where: { id },
-    });
+  async findAll(): Promise<Comment[]> {
     try {
-      await this.userRepository.findOne({
-        where: { id: check_user_id.user_id },
+      const comments = await this.commentRepository.findAll({
+        include: { all: true },
       });
+      if (!comments.length) {
+        throw new BadRequestException('Comments list is empty!');
+      }
+      return comments;
     } catch (error) {
-      throw new BadRequestException('User is not match!', error.message);
+      throw new BadRequestException(error.message);
     }
-    await this.commentRepository.destroy({ where: { id } });
-    return { message: 'Comment deleted successfully' };
+  }
+
+  async findOne(id: number): Promise<Comment> {
+    try {
+      const comment = await this.commentRepository.findOne({
+        where: { id },
+        include: { all: true },
+      });
+      if (!comment) {
+        throw new BadRequestException('Comment not found!');
+      }
+      return comment;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async update(
+    id: number,
+    updateCommentDto: UpdateCommentDto,
+  ): Promise<Comment> {
+    try {
+      const comment = await this.commentRepository.update(updateCommentDto, {
+        where: { id },
+        returning: true,
+      });
+      if (!comment[1].length) {
+        throw new BadRequestException('Comment not found!');
+      }
+      return comment[1][0];
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async remove(id: number): Promise<object> {
+    try {
+      const comment = await this.commentRepository.findOne({ where: { id } });
+      if (!comment) {
+        throw new BadRequestException('Comment not found!');
+      }
+      await this.commentRepository.destroy({ where: { id } });
+      return { message: 'Comment deleted successfully' };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 }

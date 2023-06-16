@@ -1,19 +1,18 @@
-import { Table, Model, Column, DataType } from 'sequelize-typescript';
+import { Table, Model, Column, DataType, HasMany } from 'sequelize-typescript';
+import { Comment } from 'src/comment/models/comment.model';
 
 interface UserAttributes {
+  id: string;
   first_name: string;
   last_name: string;
   email: string;
   hashed_password: string;
-  is_active: boolean;
-  hashed_refresh_token: string;
 }
 
 @Table({ tableName: 'user' })
 export class User extends Model<User, UserAttributes> {
   @Column({
-    type: DataType.INTEGER,
-    autoIncrement: true,
+    type: DataType.STRING,
     primaryKey: true,
   })
   id: number;
@@ -39,17 +38,10 @@ export class User extends Model<User, UserAttributes> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   hashed_password: string;
 
-  @Column({
-    type: DataType.BOOLEAN,
-    defaultValue: false,
-  })
-  is_active: boolean;
-
-  @Column({
-    type: DataType.STRING,
-  })
-  hashed_refresh_token: string;
+  @HasMany(() => Comment)
+  comments: Comment[];
 }

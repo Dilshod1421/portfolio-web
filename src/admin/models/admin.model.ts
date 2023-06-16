@@ -1,21 +1,21 @@
 import { Column, DataType, Model, Table } from 'sequelize-typescript';
 
 interface AdminAttributes {
+  id: string;
   username: string;
   email: string;
   hashed_password: string;
   is_admin: boolean;
-  hashed_refresh_token: string;
 }
 
 @Table({ tableName: 'admin' })
 export class Admin extends Model<Admin, AdminAttributes> {
   @Column({
-    type: DataType.INTEGER,
-    autoIncrement: true,
+    type: DataType.STRING,
+    allowNull: false,
     primaryKey: true,
   })
-  id: number;
+  id: string;
 
   @Column({
     type: DataType.STRING,
@@ -42,9 +42,4 @@ export class Admin extends Model<Admin, AdminAttributes> {
     defaultValue: true,
   })
   is_admin: boolean;
-
-  @Column({
-    type: DataType.STRING,
-  })
-  hashed_refresh_token: string;
 }

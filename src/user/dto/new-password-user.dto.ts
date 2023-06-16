@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class NewPasswordUserDto {
   @ApiProperty({
@@ -6,6 +7,8 @@ export class NewPasswordUserDto {
     example: 'Eshmat123!',
     description: "user's old password",
   })
+  @IsNotEmpty()
+  @IsString()
   old_password?: string;
 
   @ApiProperty({
@@ -13,5 +16,7 @@ export class NewPasswordUserDto {
     example: 'Eshmat123!',
     description: 'new user password',
   })
+  @IsNotEmpty()
+  @IsString()
   new_password?: string;
 }

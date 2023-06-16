@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreatePostDto {
   @ApiProperty({
@@ -6,6 +7,8 @@ export class CreatePostDto {
     example: 'Javascriptdan yangilik',
     description: 'post title',
   })
+  @IsNotEmpty()
+  @IsString()
   title: string;
 
   @ApiProperty({
@@ -13,5 +16,6 @@ export class CreatePostDto {
     example: 'Javascriptda siz endi code yanada samaraliroq yozishingiz mumkin',
     description: 'post content',
   })
+  @IsNotEmpty()
   content: string;
 }

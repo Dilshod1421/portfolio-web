@@ -14,14 +14,14 @@ export class JwtGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const req = context.switchToHttp().getRequest();
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
+    const auth_header = req.headers.authorization;
+    if (!auth_header) {
       throw new UnauthorizedException({
         message: 'Token not found!',
       });
     }
-    const bearer = authHeader.split(' ')[0];
-    const token = authHeader.split(' ')[1];
+    const bearer = auth_header.split(' ')[0];
+    const token = auth_header.split(' ')[1];
     if (bearer !== 'Bearer' || !token) {
       throw new UnauthorizedException({
         message: 'Token not found!',

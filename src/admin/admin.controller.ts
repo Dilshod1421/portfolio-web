@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   UseGuards,
+  Get,
+  ExecutionContext,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -17,6 +19,7 @@ import { UpdateAdminInfo } from './dto/update-admin-info.dto';
 import { NewPasswordDto } from './dto/new-password.dto';
 import { IsAdminGuard } from 'src/guards/isAdmin.guard';
 import { JwtGuard } from 'src/guards/jwt.guard';
+import { EmailAdminDto } from './dto/email.dto';
 
 @ApiTags('admins')
 @Controller('admin')
@@ -25,7 +28,7 @@ export class AdminController {
 
   @ApiOperation({ summary: 'create admin' })
   @Post('/create')
-  signup(@Body() createAdminDto: CreateAdminDto) {
+  create(@Body() createAdminDto: CreateAdminDto) {
     return this.adminService.createAdmin(createAdminDto);
   }
 
@@ -47,22 +50,28 @@ export class AdminController {
     return this.adminService.logout(refreshToken, res);
   }
 
+  @ApiOperation({ summary: 'get admin info by id' })
+  @Get()
+  getByEmail(@Body() emailDto: EmailAdminDto) {
+    return this.adminService.getByEmail(emailDto);
+  }
+
   @ApiOperation({ summary: 'update admin info' })
   @Patch('/update/:id')
   @UseGuards(IsAdminGuard)
   @UseGuards(JwtGuard)
   updateInfo(
+    @Param('id') id: string,
     @Body() updateAdminInfo: UpdateAdminInfo,
-    @Param('id') id: number,
   ) {
-    return this.adminService.updateInfo(updateAdminInfo, id);
+    return this.adminService.updateInfo(id, updateAdminInfo);
   }
 
   @ApiOperation({ summary: 'admin new password' })
   @Patch('/new-password/:id')
   @UseGuards(IsAdminGuard)
   @UseGuards(JwtGuard)
-  newPassword(@Body() newPasswordDto: NewPasswordDto, @Param('id') id: number) {
-    return this.adminService.newPassword(newPasswordDto, id);
+  newPassword(@Param('id') id: string, @Body() newPasswordDto: NewPasswordDto) {
+    return this.adminService.newPassword(id, newPasswordDto);
   }
 }

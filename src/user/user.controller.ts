@@ -17,7 +17,6 @@ import { LoginDto } from './dto/login.dto';
 import { CookieGetter } from 'src/decorators/cookieGetter.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { NewPasswordUserDto } from './dto/new-password-user.dto';
-import { EmailUserDto } from './dto/email-user.dto';
 import { UserSelfGuard } from 'src/guards/user-self.guard';
 import { JwtGuard } from 'src/guards/jwt.guard';
 import { IsAdminGuard } from 'src/guards/isAdmin.guard';
@@ -28,7 +27,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @ApiOperation({ summary: 'user sign up' })
-  @Post('/signup')
+  @Post('signup')
   signup(
     @Body() registerDto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
@@ -37,7 +36,7 @@ export class UserController {
   }
 
   @ApiOperation({ summary: 'user sign in' })
-  @Post('/signin')
+  @Post('signin')
   signin(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -46,35 +45,35 @@ export class UserController {
   }
 
   @ApiOperation({ summary: 'user sign out' })
-  @Post('/signout')
+  @Post('signout')
   signout(
-    @CookieGetter('refresh_token') refreshToken: string,
+    @CookieGetter('refresh_token') refresh_token: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.userService.signout(refreshToken, res);
+    return this.userService.signout(refresh_token, res);
   }
 
   @ApiOperation({ summary: 'update user profile' })
-  @Patch('/info/:id')
+  @Patch('info/:id')
   @UseGuards(UserSelfGuard)
   @UseGuards(JwtGuard)
-  update(@Body() updateUserDto: UpdateUserDto, @Param('id') id: number) {
-    return this.userService.update(updateUserDto, id);
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(id, updateUserDto);
   }
 
   @ApiOperation({ summary: 'update user password' })
-  @Patch('/password/:id')
+  @Patch('password/:id')
   @UseGuards(UserSelfGuard)
   @UseGuards(JwtGuard)
   newPassword(
+    @Param('id') id: string,
     @Body() newPasswordUserDto: NewPasswordUserDto,
-    @Param('id') id: number,
   ) {
-    return this.userService.newPassword(newPasswordUserDto, id);
+    return this.userService.newPassword(id, newPasswordUserDto);
   }
 
   @ApiOperation({ summary: 'get all users' })
-  @Get('/all')
+  @Get('all')
   @UseGuards(IsAdminGuard)
   @UseGuards(JwtGuard)
   findAll() {
@@ -82,26 +81,18 @@ export class UserController {
   }
 
   @ApiOperation({ summary: 'get user by id' })
-  @Get('/id/:id')
+  @Get(':id')
   @UseGuards(UserSelfGuard)
   @UseGuards(JwtGuard)
-  findById(@Param('id') id: number) {
+  findById(@Param('id') id: string) {
     return this.userService.findById(id);
   }
 
-  @ApiOperation({ summary: 'get user by email' })
-  @Get('/email')
-  @UseGuards(UserSelfGuard)
-  @UseGuards(JwtGuard)
-  findByEmail(@Body() emailDto: EmailUserDto) {
-    return this.userService.findByEmail(emailDto);
-  }
-
   @ApiOperation({ summary: 'delete user by id' })
-  @Delete('/:id')
+  @Delete(':id')
   @UseGuards(IsAdminGuard)
   @UseGuards(JwtGuard)
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: string) {
     return this.userService.remove(id);
   }
 }

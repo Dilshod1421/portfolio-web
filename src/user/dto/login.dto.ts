@@ -7,6 +7,7 @@ export class LoginDto {
     example: 'johndoe@gmail.com',
     description: 'User email',
   })
+  @IsNotEmpty()
   @IsEmail()
   email: string;
 

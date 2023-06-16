@@ -6,7 +6,10 @@ import { Post } from './models/post.model';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Post]), JwtModule.register({})],
+  imports: [
+    SequelizeModule.forFeature([Post]),
+    JwtModule.register({}),
+  ],
   controllers: [PostController],
   providers: [PostService],
 })

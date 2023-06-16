@@ -15,7 +15,6 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { TitleProjectDto } from './dto/title-project.dto';
 import { IsAdminGuard } from 'src/guards/isAdmin.guard';
 import { JwtGuard } from 'src/guards/jwt.guard';
 
@@ -46,12 +45,6 @@ export class ProjectController {
   @Get('/id/:id')
   findById(@Param('id') id: number) {
     return this.projectService.findById(id);
-  }
-
-  @ApiOperation({ summary: 'get project by id' })
-  @Get('/title')
-  findByTitle(@Body() titleProjectDto: TitleProjectDto) {
-    return this.projectService.findByTitle(titleProjectDto);
   }
 
   @ApiOperation({ summary: 'update project by id' })
