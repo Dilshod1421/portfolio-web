@@ -52,6 +52,8 @@ export class AdminController {
 
   @ApiOperation({ summary: 'get admin info by id' })
   @Get()
+  @UseGuards(IsAdminGuard)
+  @UseGuards(JwtGuard)
   getByEmail(@Body() emailDto: EmailAdminDto) {
     return this.adminService.getByEmail(emailDto);
   }

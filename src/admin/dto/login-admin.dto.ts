@@ -17,5 +17,6 @@ export class LoginAdminDto {
     description: 'admin password',
   })
   @IsNotEmpty()
+  @IsStrongPassword()
   password: string;
 }

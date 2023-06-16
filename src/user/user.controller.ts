@@ -73,7 +73,7 @@ export class UserController {
   }
 
   @ApiOperation({ summary: 'get all users' })
-  @Get('all')
+  @Get()
   @UseGuards(IsAdminGuard)
   @UseGuards(JwtGuard)
   findAll() {

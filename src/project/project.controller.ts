@@ -24,7 +24,7 @@ export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @ApiOperation({ summary: 'create a new project' })
-  @Post('/create')
+  @Post()
   @UseGuards(IsAdminGuard)
   @UseGuards(JwtGuard)
   @UseInterceptors(FileInterceptor('image'))
@@ -36,13 +36,13 @@ export class ProjectController {
   }
 
   @ApiOperation({ summary: 'get all projects' })
-  @Get('/all')
+  @Get()
   findAll() {
     return this.projectService.findAll();
   }
 
   @ApiOperation({ summary: 'get project by id' })
-  @Get('/id/:id')
+  @Get(':id')
   findById(@Param('id') id: number) {
     return this.projectService.findById(id);
   }
